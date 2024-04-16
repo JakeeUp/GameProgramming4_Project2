@@ -1,6 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+//game
 #include "JAF_GP4_P2Character.h"
+
+//engine
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,6 +13,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+
+#include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -50,8 +55,8 @@ AJAF_GP4_P2Character::AJAF_GP4_P2Character()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	InteractionCheckFrequency = 0.1;
+	InteractionCheckDistance = 225.0f;
 }
 
 void AJAF_GP4_P2Character::BeginPlay()
@@ -71,6 +76,71 @@ void AJAF_GP4_P2Character::BeginPlay()
 
 //////////////////////////////////////////////////////////////////////////
 // Input
+
+void AJAF_GP4_P2Character::PerformInteractionCheck()
+{
+	InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
+
+	FVector TraceStart{GetPawnViewLocation()};
+	FVector TraceEnd{TraceStart + (GetViewRotation().Vector() * InteractionCheckDistance)};
+
+	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 1.0f, 0, 2.0f);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	FHitResult TraceHit;
+
+	if(GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+	{
+		if(TraceHit.GetActor()->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+		{
+			const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
+
+			if(TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
+			{
+				FoundInteractable(TraceHit.GetActor());
+				return;
+			}
+
+			if(TraceHit.GetActor() == InteractionData.CurrentInteractable)
+			{
+				return;
+			}
+		}
+	}
+
+	NoInteractableFound();
+}
+
+void AJAF_GP4_P2Character::FoundInteractable(AActor* NewInteractable)
+{
+}
+
+void AJAF_GP4_P2Character::NoInteractableFound()
+{
+}
+
+void AJAF_GP4_P2Character::BeginInteract()
+{
+}
+
+void AJAF_GP4_P2Character::EndInteract()
+{
+}
+
+void AJAF_GP4_P2Character::Interact()
+{
+}
+
+void AJAF_GP4_P2Character::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if(GetWorld()->TimeSince(InteractionData.LastInteractionCheckTime)>InteractionCheckFrequency)
+	{
+		PerformInteractionCheck();
+	}
+}
 
 void AJAF_GP4_P2Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

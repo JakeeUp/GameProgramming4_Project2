@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/InteractableInterface.h"
 #include "Logging/LogMacros.h"
 #include "JAF_GP4_P2Character.generated.h"
 
@@ -13,20 +14,34 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+USTRUCT()
+struct FInteractionData
+{
+	GENERATED_USTRUCT_BODY()
+
+	FInteractionData() : CurrentInteractable(nullptr), LastInteractionCheckTime(0.0f)
+	{
+		
+	};
+	
+	UPROPERTY()
+	AActor* CurrentInteractable;
+
+	UPROPERTY()
+	float LastInteractionCheckTime;
+	
+};
+
+
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
+
 class AJAF_GP4_P2Character : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
+	
 	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -45,10 +60,33 @@ class AJAF_GP4_P2Character : public ACharacter
 	UInputAction* LookAction;
 
 public:
+	/**************************************************************
+***************************************************************
+ ******************* PROPERTIES AND VARIABLES ******************
+ ***************************************************************
+ *************************************************************/
+
+
+
+	/**************************************************************
+		***************************************************************
+		 ******************* functions ******************
+		 ***************************************************************
+		 *************************************************************/
+
 	AJAF_GP4_P2Character();
-	
+
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 protected:
+	/**************************************************************
+***************************************************************
+ ******************* PROPERTIES AND VARIABLES ******************
+ ***************************************************************
+ *************************************************************/
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -56,7 +94,41 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 			
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* CameraBoom;
 
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
+	TScriptInterface<IInteractableInterface> TargetInteractable;
+
+	float InteractionCheckFrequency;
+
+	float InteractionCheckDistance;
+
+	FTimerHandle TimerHandle_Interaction;
+
+	FInteractionData InteractionData;
+
+	/**************************************************************
+***************************************************************
+******************* FUNCTIONS ******************
+***************************************************************
+*************************************************************/
+
+	void PerformInteractionCheck();
+	void FoundInteractable(AActor* NewInteractable);
+	void NoInteractableFound();
+	void BeginInteract();
+	void EndInteract();
+	void Interact();
+
+	virtual void Tick(float DeltaSeconds) override;
+
+	
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -65,9 +137,6 @@ protected:
 	virtual void BeginPlay();
 
 public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
 };
 
