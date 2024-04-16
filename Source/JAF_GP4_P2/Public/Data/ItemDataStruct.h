@@ -7,11 +7,13 @@
 UENUM()
 enum class EItemQuality : uint8
 {
+	
 	Common UMETA(DisplayName = "Common"),
 	Uncommon UMETA(DisplayName = "Uncommon"),
 	Rare UMETA(DisplayName = "Rare"),
 	VeryRare UMETA(DisplayName = "VeryRare"),
 	Legendary UMETA(DisplayName = "Legendary")
+
 	
 };
 
@@ -93,6 +95,9 @@ USTRUCT()
 struct FItemData: public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Item Data")
+	FName ID;
 
 	UPROPERTY(EditAnywhere, Category = "Item Data")
 	EItemType ItemType;
