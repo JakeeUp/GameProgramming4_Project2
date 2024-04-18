@@ -57,6 +57,8 @@ AJAF_GP4_P2Character::AJAF_GP4_P2Character()
 
 	InteractionCheckFrequency = 0.1;
 	InteractionCheckDistance = 225.0f;
+	
+	BaseEyeHeight = 74.0f;
 }
 
 void AJAF_GP4_P2Character::BeginPlay()
@@ -76,6 +78,29 @@ void AJAF_GP4_P2Character::BeginPlay()
 
 //////////////////////////////////////////////////////////////////////////
 // Input
+void AJAF_GP4_P2Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	// Set up action bindings
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
+		
+		// Jumping
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AJAF_GP4_P2Character::BeginInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AJAF_GP4_P2Character::EndInteract);
+		
+		// Moving
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJAF_GP4_P2Character::Move);
+
+		// Looking
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AJAF_GP4_P2Character::Look);
+	}
+	else
+	{
+		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	}
+}
 
 void AJAF_GP4_P2Character::PerformInteractionCheck()
 {
@@ -84,52 +109,127 @@ void AJAF_GP4_P2Character::PerformInteractionCheck()
 	FVector TraceStart{GetPawnViewLocation()};
 	FVector TraceEnd{TraceStart + (GetViewRotation().Vector() * InteractionCheckDistance)};
 
-	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 1.0f, 0, 2.0f);
 
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-	FHitResult TraceHit;
+	float LookDirection = FVector::DotProduct(GetActorForwardVector(), GetViewRotation().Vector());
 
-	if(GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+    // >:333333333
+
+	if(LookDirection > 0)
 	{
-		if(TraceHit.GetActor()->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
-		{
-			const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
+		DrawDebugLine(GetWorld(), TraceStart,TraceEnd, FColor::Red, false, 1.0f,0,2.0f);
+		
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+		FHitResult TraceHit;
 
-			if(TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
-			{
-				FoundInteractable(TraceHit.GetActor());
-				return;
-			}
-
-			if(TraceHit.GetActor() == InteractionData.CurrentInteractable)
-			{
-				return;
-			}
-		}
+		if(GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+        	{
+        		if(TraceHit.GetActor()->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+        		{
+        			const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
+        
+        			if(TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
+        			{
+        				FoundInteractable(TraceHit.GetActor());
+        				return;
+        			}
+        
+        			if(TraceHit.GetActor() == InteractionData.CurrentInteractable)
+        			{
+        				return;
+        			}
+        		}
+        	}
 	}
+	
+
+	
 
 	NoInteractableFound();
 }
 
 void AJAF_GP4_P2Character::FoundInteractable(AActor* NewInteractable)
 {
+	if(isInteracting())
+	{
+		EndInteract();
+	}
+
+	if(InteractionData.CurrentInteractable)
+	{
+		TargetInteractable = InteractionData.CurrentInteractable;
+		TargetInteractable->EndFocus();
+	}
+
+	InteractionData.CurrentInteractable = NewInteractable;
+	TargetInteractable = NewInteractable;
+	TargetInteractable->BeginFocus();
 }
 
 void AJAF_GP4_P2Character::NoInteractableFound()
 {
+	if(isInteracting())
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+	}
+
+	if(InteractionData.CurrentInteractable)
+	{
+		if(IsValid(TargetInteractable.GetObject()))
+		{
+			TargetInteractable->EndFocus();
+		}
+
+		//hide interaction wdiget on the hud
+
+		InteractionData.CurrentInteractable = nullptr;
+		TargetInteractable = nullptr;
+	}
 }
 
 void AJAF_GP4_P2Character::BeginInteract()
 {
+	// verify nothing has changed with the interactable state since beginning interaction
+	PerformInteractionCheck();
+	if(InteractionData.CurrentInteractable)
+	{
+		if(IsValid(TargetInteractable.GetObject()))
+		{
+			TargetInteractable->BeginInteract();
+
+			if(FMath::IsNearlyZero(TargetInteractable->InteractableData.InteractionDuration, 0.1f))
+			{
+				Interact();
+			}
+			else
+			{
+				GetWorldTimerManager().SetTimer(TimerHandle_Interaction,
+					this,
+					&AJAF_GP4_P2Character::Interact,
+					TargetInteractable->InteractableData.InteractionDuration,
+					false);
+			}
+		}
+	}
 }
 
 void AJAF_GP4_P2Character::EndInteract()
 {
+	GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+
+	if(IsValid(TargetInteractable.GetObject()))
+	{
+		TargetInteractable->EndInteract();
+	}
 }
 
 void AJAF_GP4_P2Character::Interact()
 {
+	GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
+	if(IsValid(TargetInteractable.GetObject()))
+	{
+		TargetInteractable->Interact();
+	}
 }
 
 void AJAF_GP4_P2Character::Tick(float DeltaSeconds)
@@ -142,26 +242,6 @@ void AJAF_GP4_P2Character::Tick(float DeltaSeconds)
 	}
 }
 
-void AJAF_GP4_P2Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJAF_GP4_P2Character::Move);
-
-		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AJAF_GP4_P2Character::Look);
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
-}
 
 void AJAF_GP4_P2Character::Move(const FInputActionValue& Value)
 {
