@@ -20,6 +20,6 @@ void IInteractableInterface::EndInteract()
 {
 }
 
-void IInteractableInterface::Interact()
+void IInteractableInterface::Interact(AJAF_GP4_P2Character* PlayerCharacter)
 {
 }

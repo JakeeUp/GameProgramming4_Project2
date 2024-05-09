@@ -126,9 +126,8 @@ void AJAF_GP4_P2Character::PerformInteractionCheck()
         	{
         		if(TraceHit.GetActor()->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
         		{
-        			const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
         
-        			if(TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
+        			if(TraceHit.GetActor() != InteractionData.CurrentInteractable)
         			{
         				FoundInteractable(TraceHit.GetActor());
         				return;
@@ -228,7 +227,7 @@ void AJAF_GP4_P2Character::Interact()
 	GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
 	if(IsValid(TargetInteractable.GetObject()))
 	{
-		TargetInteractable->Interact();
+		TargetInteractable->Interact(this);
 	}
 }
 

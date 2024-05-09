@@ -6,6 +6,8 @@
 #include "UObject/Interface.h"
 #include "InteractableInterface.generated.h"
 
+class AJAF_GP4_P2Character;
+
 UENUM()
 enum class EInteractableType : uint8
 {
@@ -70,7 +72,7 @@ public:
 	virtual void EndFocus();
 	virtual void BeginInteract();
 	virtual void EndInteract();
-	virtual void Interact();
+	virtual void Interact(AJAF_GP4_P2Character* PlayerCharacter);
 
 	FInteractableData InteractableData;
 };

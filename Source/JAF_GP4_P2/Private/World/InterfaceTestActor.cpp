@@ -55,7 +55,7 @@ void AInterfaceTestActor::EndInteract()
 	UE_LOG(LogTemp, Warning,TEXT("Calling EndInteract override on interface test actor"));
 }
 
-void AInterfaceTestActor::Interact()
+void AInterfaceTestActor::Interact(AJAF_GP4_P2Character* PlayerCharacter)
 {
 	UE_LOG(LogTemp, Warning,TEXT("Calling Interact override on interface test actor"));
 }
