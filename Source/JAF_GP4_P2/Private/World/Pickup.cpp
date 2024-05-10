@@ -108,11 +108,12 @@ void APickup::TakePickup(const AJAF_GP4_P2Character* Taker)
 					Taker->UpdateInteractionWidget();
 					break;
 				case EItemAddResult::IAR_AllItemAdded:
+					UE_LOG(LogTemp, Warning, TEXT("ALL ITEM ADDED"));
 					Destroy();
 					break;
 				}
 
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *AddResult.ResultMessage.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("%s test"), *AddResult.ResultMessage.ToString());
 			}
 			else
 			{
@@ -127,24 +128,24 @@ void APickup::TakePickup(const AJAF_GP4_P2Character* Taker)
 	}
 }
 
-void APickup::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	const FName ChangedPropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
-
-	if(ChangedPropertyName == GET_MEMBER_NAME_CHECKED(APickup, DesiredItemID))
-	{
-		if(ItemDataTable)
-		{
-
-			if(const FItemData* ItemData = ItemDataTable->FindRow<FItemData>(DesiredItemID,DesiredItemID.ToString()))
-			{
-				PickupMesh->SetStaticMesh(ItemData->AssetData.Mesh);
-			}
-		}
-	}
-}
+//void APickup::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) 
+//{
+//	Super::PostEditChangeProperty(PropertyChangedEvent);
+//
+//	const FName ChangedPropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+//
+//	if(ChangedPropertyName == GET_MEMBER_NAME_CHECKED(APickup, DesiredItemID))
+//	{
+//		if(ItemDataTable)
+//		{
+//
+//			if(const FItemData* ItemData = ItemDataTable->FindRow<FItemData>(DesiredItemID,DesiredItemID.ToString()))
+//			{
+//				PickupMesh->SetStaticMesh(ItemData->AssetData.Mesh);
+//			}
+//		}
+//	}
+//}
 
 
 // Called every frame

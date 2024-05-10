@@ -7,10 +7,13 @@
 #include "Interfaces/InteractableInterface.h"
 #include "Items/ItemBase.h"
 #include "JAF_GP4_P2/JAF_GP4_P2Character.h"
+
 #include "Pickup.generated.h"
 
 class AJAF_GP4_P2Character;
-
+class UDataTable;
+class ActorEditor;
+class AActor;
 UCLASS()
 class JAF_GP4_P2_API APickup : public AActor, public IInteractableInterface
 {
@@ -32,16 +35,19 @@ public:
 
 	FORCEINLINE UItemBase* GetItemData() { return ItemReference; }
 
-protected:
+
+	UPROPERTY(EditInstanceOnly, Category = "Pickup | Item Initialization")
+	FName DesiredItemID;
+
+
+//	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+public:
 	//Propperties and variables
 	UPROPERTY(VisibleAnywhere, Category = "Pickup | Components")
 	UStaticMeshComponent* PickupMesh;
 
 	UPROPERTY(EditInstanceOnly, Category = "Pickup | Item Initialization")
 	UDataTable* ItemDataTable;
-
-	UPROPERTY(EditInstanceOnly, Category = "Pickup | Item Initialization")
-	FName DesiredItemID;
 
 	UPROPERTY(VisibleAnywhere, Category = "Pickup | Item Reference")
 	UItemBase* ItemReference;
@@ -61,8 +67,7 @@ protected:
 	
 	void TakePickup(const AJAF_GP4_P2Character* Taker);
 
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
+
+
 	
 };

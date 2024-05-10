@@ -7,6 +7,7 @@
 #include "Components/TextBlock.h"
 #include "Components/WrapBox.h"
 #include "Items/ItemBase.h"
+#include "UserInterface/Inventory/ItemDragDropOperation.h"
 
 void UInventoryPanel::NativeOnInitialized()
 {
@@ -46,7 +47,7 @@ void UInventoryPanel::RefreshInventory()
 void UInventoryPanel::SetInfoText() const
 {
 	const FString WeightInfoValue{
-		FString::SanitizeFloat(InventoryReference->GetInventoryTotalWeight()) + "/"
+		FString::SanitizeFloat(InventoryReference->GetInventoryTotalWeight())  + "/"
 		+ FString::SanitizeFloat(InventoryReference->GetWeightCapacity())};
 
 	const FString CapacityInfoValue{
@@ -64,5 +65,14 @@ void UInventoryPanel::SetInfoText() const
 bool UInventoryPanel::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	UDragDropOperation* InOperation)
 {
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	const UItemDragDropOperation* ItemDragDrop = Cast<UItemDragDropOperation>(InOperation);
+
+	if(ItemDragDrop->SourceItem && InventoryReference)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Detected an Item drop on InventoryPanel"))
+
+		return true;
+	}
+
+	return false;
 }

@@ -261,6 +261,15 @@ void AJAF_GP4_P2Character::Tick(float DeltaSeconds)
 	{
 		PerformInteractionCheck();
 	}
+
+	if(PlayerInventory->GetInventoryTotalWeight() > 20)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 5.0f;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 500.0f;
+	}
 }
 
 
