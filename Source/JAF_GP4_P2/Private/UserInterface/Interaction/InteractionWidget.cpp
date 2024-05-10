@@ -9,7 +9,7 @@ void UInteractionWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	InteractionProgressBar->PercentDelegate.BindUFunction(this, "")
+	InteractionProgressBar->PercentDelegate.BindUFunction(this, "UpdateInteractionProgress");
 }
 
 void UInteractionWidget::NativeConstruct()
@@ -49,6 +49,8 @@ void UInteractionWidget::UpdateWidget(const FInteractableData* InteractableData)
 	default: ;
 	}
 
+	ActionText->SetText(InteractableData->Action);
+	NameText->SetText(InteractableData->Name);
 }
 
 float UInteractionWidget::UpdateInteractionProgress()

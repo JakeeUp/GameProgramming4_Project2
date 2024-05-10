@@ -8,7 +8,7 @@
 #include "InteractionWidget.generated.h"
 
 class AJAF_GP4_P2Character;
-class FInteractableData;
+struct FInteractableData;
 class UTextBlock;
 class UProgressBar;
 

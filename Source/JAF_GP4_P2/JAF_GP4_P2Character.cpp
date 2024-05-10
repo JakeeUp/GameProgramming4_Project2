@@ -2,6 +2,7 @@
 
 //game
 #include "JAF_GP4_P2Character.h"
+#include "UserInterface/JAFTutorialHud.h"
 
 //engine
 #include "Engine/LocalPlayer.h"
@@ -13,7 +14,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
-
 #include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -66,6 +66,11 @@ void AJAF_GP4_P2Character::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
+	HUD = Cast<AJAFTutorialHud>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	
+
+
+	
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -162,6 +167,9 @@ void AJAF_GP4_P2Character::FoundInteractable(AActor* NewInteractable)
 
 	InteractionData.CurrentInteractable = NewInteractable;
 	TargetInteractable = NewInteractable;
+
+	HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
+	
 	TargetInteractable->BeginFocus();
 }
 
@@ -180,7 +188,8 @@ void AJAF_GP4_P2Character::NoInteractableFound()
 		}
 
 		//hide interaction wdiget on the hud
-
+		HUD->HideInteractionWidget();
+		
 		InteractionData.CurrentInteractable = nullptr;
 		TargetInteractable = nullptr;
 	}

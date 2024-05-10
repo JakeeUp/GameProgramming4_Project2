@@ -58,11 +58,11 @@ void AJAFTutorialHud::HideInteractionWidget()
 {
 	if(InteractionWidget)
 	{
-		InteractionWidget->SetVisibility(ESlateVisibility::Visible);
+		InteractionWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
-void AJAFTutorialHud::UpdateInteractionWidget(const FInteractionData* InteractableData)
+void AJAFTutorialHud::UpdateInteractionWidget(const FInteractableData* InteractableData)
 {
 	if(InteractionWidget)
 	{
@@ -70,6 +70,8 @@ void AJAFTutorialHud::UpdateInteractionWidget(const FInteractionData* Interactab
 		{
 			InteractionWidget->SetVisibility(ESlateVisibility::Visible);
 		}
+
+		InteractionWidget->UpdateWidget(InteractableData);
 	}
 }
 

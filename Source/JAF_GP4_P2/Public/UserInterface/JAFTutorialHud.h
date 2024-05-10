@@ -39,7 +39,8 @@ public:
 
 	void ShowInteractionWidget();
 	void HideInteractionWidget();
-	void UpdateInteractionWidget (const FInteractionData* InteractableData);
+	void UpdateInteractionWidget(const FInteractableData* InteractableData) const;
+	void UpdateInteractionWidget (const FInteractableData* InteractableData);
 
 protected:
 

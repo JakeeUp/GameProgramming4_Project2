@@ -12,6 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class AJAFTutorialHud;
 struct FInputActionValue;
 
 USTRUCT()
@@ -93,6 +94,10 @@ protected:
  ***************************************************************
  *************************************************************/
 
+	UPROPERTY()
+	AJAFTutorialHud* HUD;
+
+	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
