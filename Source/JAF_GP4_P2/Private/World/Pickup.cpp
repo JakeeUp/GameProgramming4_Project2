@@ -2,6 +2,8 @@
 
 
 #include "World/Pickup.h"
+#include "JAF_GP4_P2/JAF_GP4_P2Character.h"
+#include "Components/InventoryComponent.h"
 
 // Sets default values
 APickup::APickup()
@@ -93,7 +95,34 @@ void APickup::TakePickup(const AJAF_GP4_P2Character* Taker)
 	{
 		if(ItemReference)
 		{
-			//if (UInventoryComponent* PlayerInventory = Taker->GetInventory())
+			if (UInventoryComponent* PlayerInventory = Taker->GetInventory())
+			{
+				const FItemAddResult AddResult = PlayerInventory->HandleAddItem(ItemReference);
+
+				switch (AddResult.OperationResult)
+				{
+				case EItemAddResult::IAR_NoItemAdded:
+					break;
+				case EItemAddResult::IAR_PartialAmountItemAdded:
+					UpdateInteractableData();
+					Taker->UpdateInteractionWidget();
+					break;
+				case EItemAddResult::IAR_AllItemAdded:
+					Destroy();
+					break;
+				}
+
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *AddResult.ResultMessage.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp,Warning,TEXT("Player Inventory Component is null!"));
+			}
+			
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Player internal item reference was somehow null!"));
 		}
 	}
 }

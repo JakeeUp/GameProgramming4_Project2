@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Data/ItemDataStruct.h"
-#include "JAF_GP4_P2/JAF_GP4_P2Character.h"
 #include "ItemBase.generated.h"
 
+class AJAF_GP4_P2Character;
+class UInventoryComponent;
 /**
  * 
  */
@@ -23,6 +24,8 @@ public:
 	 ***************************************************************
 	 *************************************************************/
 
+	UPROPERTY()
+	UInventoryComponent* OwningInventory;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Item")
 	int32 Quantity;
@@ -48,6 +51,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Item")
 	FItemAssetData AssetData;
 
+	bool bIsCopy;
+	bool bIsPickup;
 
 
 	/**************************************************************
@@ -57,6 +62,8 @@ public:
 	 *************************************************************/
 
 	UItemBase();
+
+	void ResetItemFlags();
 
 	UFUNCTION(Category = "Item")
 	UItemBase* CreateItemCopy();

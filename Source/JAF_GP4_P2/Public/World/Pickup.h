@@ -6,7 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "Interfaces/InteractableInterface.h"
 #include "Items/ItemBase.h"
+#include "JAF_GP4_P2/JAF_GP4_P2Character.h"
 #include "Pickup.generated.h"
+
+class AJAF_GP4_P2Character;
 
 UCLASS()
 class JAF_GP4_P2_API APickup : public AActor, public IInteractableInterface

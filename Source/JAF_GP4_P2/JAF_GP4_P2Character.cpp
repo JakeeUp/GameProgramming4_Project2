@@ -3,6 +3,7 @@
 //game
 #include "JAF_GP4_P2Character.h"
 #include "UserInterface/JAFTutorialHud.h"
+#include "Components/InventoryComponent.h"
 
 //engine
 #include "Engine/LocalPlayer.h"
@@ -15,6 +16,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "DrawDebugHelpers.h"
+#include "World/Pickup.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -49,6 +51,10 @@ AJAF_GP4_P2Character::AJAF_GP4_P2Character()
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+
+	PlayerInventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventory"));
+	PlayerInventory->SetSlotsCapacity(20);
+	PlayerInventory->SetWeightCapacity(50.0f);
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -94,6 +100,8 @@ void AJAF_GP4_P2Character::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AJAF_GP4_P2Character::BeginInteract);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AJAF_GP4_P2Character::EndInteract);
+
+		EnhancedInputComponent->BindAction(ToggleMenuAction,  ETriggerEvent::Triggered, this, &AJAF_GP4_P2Character::ToggleMenu);
 		
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJAF_GP4_P2Character::Move);
@@ -240,6 +248,11 @@ void AJAF_GP4_P2Character::Interact()
 	}
 }
 
+void AJAF_GP4_P2Character::ToggleMenu()
+{
+	HUD->ToggleMenu();
+}
+
 void AJAF_GP4_P2Character::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -250,6 +263,38 @@ void AJAF_GP4_P2Character::Tick(float DeltaSeconds)
 	}
 }
 
+
+void AJAF_GP4_P2Character::UpdateInteractionWidget() const
+{
+	if(IsValid(TargetInteractable.GetObject()))
+	{
+		HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
+	}
+}
+
+void AJAF_GP4_P2Character::DropItem(UItemBase* ItemToDrop, const int32 QuantityToDrop)
+{
+	if(PlayerInventory->FindMatchingItem(ItemToDrop))
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		const FVector SpawnLocation{GetActorLocation() + (GetActorForwardVector() * 50.0f)};
+		const FTransform SpawnTransform(GetActorRotation(), SpawnLocation);
+
+		const int32 RemovedQuantity = PlayerInventory->RemoveAmountOfItem(ItemToDrop, QuantityToDrop);
+
+		APickup* Pickup = GetWorld()->SpawnActor<APickup>(APickup::StaticClass(), SpawnTransform,SpawnParams);
+
+		Pickup->InitializeDrop(ItemToDrop,RemovedQuantity);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Item to drop was somehow null"));
+	}
+}
 
 void AJAF_GP4_P2Character::Move(const FInputActionValue& Value)
 {

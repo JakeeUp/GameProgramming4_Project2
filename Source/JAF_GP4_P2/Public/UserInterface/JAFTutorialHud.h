@@ -36,10 +36,11 @@ public:
 
 	void DisplayMenu();
 	void HideMenu();
+	void ToggleMenu();
+	
 
 	void ShowInteractionWidget();
 	void HideInteractionWidget();
-	void UpdateInteractionWidget(const FInteractableData* InteractableData) const;
 	void UpdateInteractionWidget (const FInteractableData* InteractableData);
 
 protected:

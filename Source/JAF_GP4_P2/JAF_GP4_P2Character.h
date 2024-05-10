@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/InteractableInterface.h"
+#include "Items/ItemBase.h"
 #include "Logging/LogMacros.h"
 #include "JAF_GP4_P2Character.generated.h"
 
@@ -12,7 +13,9 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UItemBase;
 class AJAFTutorialHud;
+class UInventoryComponent;
 struct FInputActionValue;
 
 USTRUCT()
@@ -63,6 +66,9 @@ class AJAF_GP4_P2Character : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ToggleMenuAction;
+
 public:
 	/**************************************************************
 ***************************************************************
@@ -86,6 +92,12 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	FORCEINLINE bool isInteracting() const {return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction);};
+
+	FORCEINLINE UInventoryComponent* GetInventory() const {return PlayerInventory;};
+
+	void UpdateInteractionWidget() const;
+
+	void DropItem(UItemBase* ItemToDrop, const int32 QuantityToDrop);
 
 protected:
 	/**************************************************************
@@ -115,6 +127,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
 	TScriptInterface<IInteractableInterface> TargetInteractable;
 
+
+	UPROPERTY(VisibleAnywhere, Category = "Character | Inventory")
+	UInventoryComponent* PlayerInventory;
+
 	float InteractionCheckFrequency;
 
 	float InteractionCheckDistance;
@@ -135,6 +151,8 @@ protected:
 	void BeginInteract();
 	void EndInteract();
 	void Interact();
+
+	void ToggleMenu();
 
 	virtual void Tick(float DeltaSeconds) override;
 
